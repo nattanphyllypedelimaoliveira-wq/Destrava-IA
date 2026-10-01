@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Destrava — IA</title>
+<style>
+:root{--bg:#eef3f8;--card:#fff;--ink:#14213d;--muted:#60708c;--line:#d7e0ec;--blue:#315cff;--gold:#ffd23f;--ok:#16894d;--danger:#d83b3b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.brand{font-size:28px;font-weight:800}.brand b{background:var(--gold);padding:2px 7px;border-radius:7px}
+nav{display:flex;gap:6px;flex-wrap:wrap}button{cursor:pointer;font:inherit}.navbtn,.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:700}.navbtn{background:var(--card);border:1px solid var(--line);color:var(--ink)}.navbtn.active,.btn{background:var(--blue);color:#fff}.btn.gold{background:var(--gold);color:#14213d}.btn.danger{background:var(--danger)}
+.panel{display:none}.panel.on{display:block}.hero{display:grid;grid-template-columns:1fr 1.2fr;gap:25px;margin-top:35px}.hero h1{font-size:clamp(35px,6vw,60px);margin:0 0 15px}.lead{color:var(--muted);font-size:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}.chat{height:540px;display:flex;flex-direction:column}.msgs{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px}.msg{max-width:85%;padding:11px 14px;border-radius:14px;white-space:pre-wrap}.bot{background:var(--bg)}.me{align-self:flex-end;background:var(--blue);color:#fff}.send{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:12px}.input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:var(--ink)}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:20px}.price{font-size:38px;font-weight:800;margin:8px 0}.plan ul{color:var(--muted);line-height:1.8}.premium{border:2px solid var(--gold)}
+.auth{max-width:470px;margin:45px auto}.tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1}.hide{display:none!important}.msgbox{padding:10px;border-radius:10px;background:#f5f7fa;margin-top:10px}.ok{color:var(--ok)}.err{color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}.stat b{display:block;font-size:28px}.muted{color:var(--muted);font-size:14px}
+table{width:100%;border-collapse:collapse}.table{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted)}
+.qr{background:#fff;border:1px dashed var(--line);padding:12px;word-break:break-all;font-size:12px}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.chat{height:480px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand"><b>D</b>estrava</div>
+  <nav>
+    <button class="navbtn active" data-page="home">Início</button>
+    <button class="navbtn" data-page="plans">Planos</button>
+    <button class="navbtn" data-page="account">Conta</button>
+    <button class="navbtn hide" id="adminNav" data-page="admin">⚙️ Painel ADM</button>
+    <button class="navbtn hide" id="logout">Sair</button>
+  </nav>
+</header>
+
+<section id="home" class="panel on">
+ <div class="hero">
+  <div>
+   <h1>Travou em alguma coisa? Pergunte.</h1>
+   <p class="lead">Seu espaço para perguntas, estudos, textos e tarefas do dia a dia.</p>
+   <div class="card">
+    <strong id="status">Visitante</strong>
+    <p class="muted" id="quota">Entre ou crie sua conta para usar.</p>
+   </div>
+  </div>
+  <div class="card chat">
+   <div class="msgs" id="msgs"><div class="msg bot">Oi! Entre na sua conta para começar.</div></div>
+   <form class="send" id="chatForm">
+    <input class="input" id="question" placeholder="Digite sua pergunta..." autocomplete="off">
+    <button class="btn">Enviar</button>
+   </form>
+  </div>
+ </div>
+</section>
+
+<section id="plans" class="panel">
+ <h2>Escolha seu plano</h2>
+ <div class="plans">
+  <div class="card plan"><h3>Grátis</h3><div class="price">R$ 0</div><ul><li>5 perguntas por dia</li><li>Conta gratuita</li></ul><button class="btn" onclick="openAccount()">Criar conta</button></div>
+  <div class="card plan premium"><h3>Rápido</h3><div class="price">R$ 10 <small>/mês</small></div><ul><li>100 perguntas por dia</li><li>Ativação pelo administrador</li><li>Pagamento por Pix</li></ul><button class="btn gold" onclick="buyPro()">Assinar com Pix</button></div>
+ </div>
+ <div id="payment" class="card hide" style="margin-top:20px">
+   <h3>Pagamento via Pix</h3>
+   <p id="paymentText">O administrador ainda não configurou a chave Pix.</p>
+   <div id="pixBox" class="qr hide"></div>
+   <button class="btn" id="paidBtn">Já paguei</button>
+ </div>
+</section>
+
+<section id="account" class="panel">
+ <div class="card auth">
+  <div class="tabs"><button class="btn" id="loginTab">Entrar</button><button class="navbtn" id="registerTab">Criar conta</button></div>
+  <form id="loginForm"><h2>Entrar</h2><input class="input" id="loginEmail" placeholder="E-mail" type="email" required><br><br><input class="input" id="loginPass" placeholder="Senha" type="password" required><br><br><button class="btn">Entrar</button></form>
+  <div class="card" style="margin-top:18px;background:#f7f9fc;border:1px solid var(--line)">
+   <h3 style="margin-top:0">Acesso do administrador</h3>
+   <p class="muted">Use esta conta para entrar no Painel ADM.</p>
+   <p style="margin:.4rem 0"><b>E-mail:</b> nattanphyllypedelimaoliveira@gmail.com</p>
+   <p style="margin:.4rem 0"><b>Senha:</b> Admin@123456</p>
+   <button class="btn gold" type="button" id="adminLoginBtn">Entrar como ADM</button>
+  </div>
+  <form id="registerForm" class="hide"><h2>Criar conta</h2><input class="input" id="regName" placeholder="Seu nome" required><br><br><input class="input" id="regEmail" placeholder="E-mail" type="email" required><br><br><input class="input" id="regPass" placeholder="Senha (mínimo 6 caracteres)" type="password" minlength="6" required><br><br><button class="btn">Criar conta</button></form>
+  <div id="authMsg"></div>
+ </div>
+</section>
+
+<section id="admin" class="panel">
+ <div class="card" style="margin-top:25px">
+  <h2>⚙️ Painel ADM</h2>
+  <p class="muted">Área exclusiva do administrador. Aqui você controla clientes, planos, pagamentos e sua configuração Pix.</p>
+ </div>
+ <p class="muted">Área exclusiva do administrador. Em produção, esta área deve ser protegida pelo servidor e não apenas pelo navegador.</p>
+ <div style="display:flex;justify-content:flex-end;margin-top:15px"><button class="navbtn" onclick="renderAdmin()">↻ Atualizar painel</button></div><div class="stats">
+  <div class="stat"><b id="usersCount">0</b><span>usuários</span></div>
+  <div class="stat"><b id="proCount">0</b><span>planos ativos</span></div>
+  <div class="stat"><b id="revenue">R$ 0</b><span>receita cadastrada</span></div>
+  <div class="stat"><b id="pending">0</b><span>pagamentos pendentes</span></div>
+ </div>
+ <div class="card">
+  <h3>Receber por Pix</h3>
+  <p class="muted">O dinheiro pago pelo cliente vai diretamente para esta chave Pix. Você não precisa transferi-lo depois.</p>
+  <form id="pixForm"><input class="input" id="adminPix" placeholder="Sua chave Pix" required><br><br><input class="input" id="adminName" placeholder="Nome do recebedor" required><br><br><button class="btn">Salvar configuração</button></form>
+  <div id="adminPixMsg"></div>
+ </div>
+ <br>
+ <div class="table"><table><thead><tr><th>Cliente</th><th>E-mail</th><th>Status</th><th>Ação</th></tr></thead><tbody id="userRows"></tbody></table></div>
+</section>
+</div>
+
+<script>
+const KEY="destrava_v4";
+const ADMIN_EMAIL="nattanphyllypedelimaoliveira@gmail.com";
+const ADMIN_PASSWORD="Admin@123456";
+let state;
+try{ state=JSON.parse(localStorage.getItem(KEY)||"null") || {users:[],pix:{key:"",name:"Destrava"},session:null}; }catch(e){ state={users:[],pix:{key:"",name:"Destrava"},session:null}; }
+function ensureAdmin(){
+ const email=ADMIN_EMAIL.toLowerCase();
+ let a=state.users.find(u=>String(u.email||"").toLowerCase()===email);
+ if(!a){
+  a={id:"admin-destrava",name:"Administrador",email:ADMIN_EMAIL,pass:ADMIN_PASSWORD,pro:true,admin:true,pending:false,created:Date.now()};
+  state.users.unshift(a);
+ }else{
+  a.email=ADMIN_EMAIL; a.pass=ADMIN_PASSWORD; a.name=a.name||"Administrador"; a.admin=true; a.pro=true;
+ }
+ save();
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+ensureAdmin();
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function user(){return state.users.find(x=>x.id===state.session)}
+function go(page){
+ document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("on",x.id===page));
+ document.querySelectorAll(".navbtn[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+ if(page==="admin")renderAdmin();
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));
+function openAccount(){go("account")}
+function render(){
+ const u=user();
+ document.getElementById("logout").classList.toggle("hide",!u);
+ document.getElementById("adminNav").classList.toggle("hide",!(u&&u.admin));
+ document.getElementById("status").textContent=u?`Olá, ${u.name}! Plano: ${u.pro?"Rápido":"Grátis"}`:"Visitante";
+ document.getElementById("quota").textContent=u?(u.pro?"100 perguntas/dia":"5 perguntas/dia"):"Entre ou crie sua conta para usar.";
+}
+document.getElementById("loginTab").onclick=()=>{loginForm.classList.remove("hide");registerForm.classList.add("hide")}
+document.getElementById("registerTab").onclick=()=>{registerForm.classList.remove("hide");loginForm.classList.add("hide")}
+document.getElementById("registerForm").onsubmit=e=>{
+ e.preventDefault();let name=regName.value.trim(),email=regEmail.value.trim().toLowerCase(),pass=regPass.value;
+ if(state.users.some(u=>u.email===email))return authMsg.innerHTML='<p class="err">Esse e-mail já está cadastrado.</p>';
+ state.users.push({id:uid(),name,email,pass,pro:false,admin:false,pending:false,created:Date.now()});
+ state.session=state.users.at(-1).id;save();authMsg.innerHTML='<p class="ok">Conta criada com sucesso.</p>';render();go("home");
+}
+document.getElementById("loginForm").onsubmit=e=>{
+ e.preventDefault();
+ ensureAdmin();
+ let email=loginEmail.value.trim().toLowerCase(),pass=loginPass.value,u=state.users.find(x=>String(x.email).toLowerCase()===email&&x.pass===pass);
+ if(!u && email===ADMIN_EMAIL.toLowerCase() && pass===ADMIN_PASSWORD){ ensureAdmin(); u=state.users.find(x=>String(x.email).toLowerCase()===email); }
+ if(!u)return authMsg.innerHTML='<p class="err">E-mail ou senha incorretos.</p>';
+ state.session=u.id;save();authMsg.innerHTML='<p class="ok">Login realizado.</p>';render();go(u.admin?"admin":"home");
+}
+document.getElementById("adminLoginBtn").onclick=()=>{
+ ensureAdmin(); loginEmail.value=ADMIN_EMAIL; loginPass.value=ADMIN_PASSWORD; state.session=state.users.find(x=>x.email.toLowerCase()===ADMIN_EMAIL.toLowerCase()).id; save(); authMsg.innerHTML='<p class="ok">Conta ADM carregada. Abrindo o Painel ADM...</p>'; render(); go("admin");
+};
+logout.onclick=()=>{state.session=null;save();render();go("home")}
+function buyPro(){
+ const u=user();if(!u){openAccount();return}
+ if(u.pro){alert("Seu plano já está ativo.");return}
+ payment.classList.remove("hide");
+ if(!state.pix.key){paymentText.textContent="O administrador ainda não configurou a chave Pix.";pixBox.classList.add("hide");return}
+ paymentText.textContent=`Pague R$ 10,00 para ${state.pix.name}. Depois, clique em “Já paguei”.`;
+ pixBox.classList.remove("hide");
+ pixBox.textContent="PIX (copia e cola): "+state.pix.key+" | VALOR: R$10,00 | RECEBEDOR: "+state.pix.name;
+}
+paidBtn.onclick=()=>{
+ const u=user();if(!u)return;
+ u.pending=true;save();alert("Pedido enviado. O administrador precisa conferir o pagamento e ativar seu plano.");render();
+}
+adminPix.value=state.pix.key;adminName.value=state.pix.name;
+pixForm.onsubmit=e=>{e.preventDefault();state.pix={key:adminPix.value.trim(),name:adminName.value.trim()||"Destrava"};save();adminPixMsg.innerHTML='<p class="ok">Pix salvo.</p>'}
+function renderAdmin(){
+ const u=user();if(!u||!u.admin){go("home");return}
+ usersCount.textContent=state.users.length;proCount.textContent=state.users.filter(x=>x.pro).length;
+ revenue.textContent="R$ "+(state.users.filter(x=>x.pro).length*10).toFixed(2).replace(".",",");
+ pending.textContent=state.users.filter(x=>x.pending).length;
+ adminPix.value=state.pix.key;adminName.value=state.pix.name;
+ userRows.innerHTML="";
+ state.users.filter(x=>!x.admin).forEach(x=>{
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td>${x.name}</td><td>${x.email}</td><td>${x.pro?"Ativo":x.pending?"Aguardando Pix":"Grátis"}</td><td></td>`;
+  const cell=tr.lastElementChild;
+  if(x.pending){let b=document.createElement("button");b.className="btn";b.textContent="Confirmar";b.onclick=()=>{x.pro=true;x.pending=false;save();renderAdmin()};cell.appendChild(b)}
+  else if(x.pro){let b=document.createElement("button");b.className="btn danger";b.textContent="Desativar";b.onclick=()=>{x.pro=false;save();renderAdmin()};cell.appendChild(b)}
+  userRows.appendChild(tr)
+ })
+}
+chatForm.onsubmit=e=>{
+ e.preventDefault();const u=user();if(!u){openAccount();return}
+ const max=u.pro?100:5;
+ u.used=u.used||0;if(u.used>=max){msgs.innerHTML+='<div class="msg bot">Seu limite diário foi atingido.</div>';return}
+ const q=question.value.trim();if(!q)return;
+ msgs.innerHTML+=`<div class="msg me">${q}</div><div class="msg bot">A área de IA está pronta para receber seu backend de IA. A conta, planos e controle de acesso já estão funcionando neste navegador.</div>`;
+ u.used++;save();question.value="";
+}
+render();
+</script>
+
+<section id="app-download" style="margin:24px 0;padding:20px;border-radius:16px;background:#f3f4f6">
+<h2>📱 Instalar o Destrava como aplicativo</h2>
+<p>Use o Destrava como aplicativo no celular ou computador.</p>
+<button id="installDestrava" type="button">Instalar aplicativo</button>
+<p style="font-size:.9em;opacity:.75">No iPhone/iPad: Safari → Compartilhar → Adicionar à Tela de Início. No Chrome/Edge, a instalação aparece quando o site estiver publicado em HTTPS.</p>
+</section>
+<script>
+let destravaInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();destravaInstallPrompt=e;});
+document.addEventListener('DOMContentLoaded',()=>{
+ const b=document.getElementById('installDestrava');
+ if(b)b.addEventListener('click',async()=>{
+  if(destravaInstallPrompt){destravaInstallPrompt.prompt();await destravaInstallPrompt.userChoice;destravaInstallPrompt=null;}
+  else alert('Se a instalação não aparecer, publique o site em HTTPS e use o menu do navegador: Instalar aplicativo.');
+ });
+});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+
+</body>
+</html>
